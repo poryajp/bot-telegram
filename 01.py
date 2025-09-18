@@ -1,10 +1,12 @@
 import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler
+from telegram.ext import filters # <--- اضافه کردن این خط
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import platform
 import psutil
 import subprocess
 import re
+import datetime # <--- اضافه کردن این خط برای datetime.datetime
 
 # توکن ربات خود را اینجا قرار دهید
 TOKEN = 'YOUR_BOT_TOKEN'
@@ -24,6 +26,9 @@ def button(update, context):
     query.answer()
 
     if query.data == 'ping':
+        # برای edit_message_text باید یک message_id داشته باشید.
+        # اگر می خواهید پیام جدیدی ارسال شود، از reply_text استفاده کنید.
+        # اگر می خواهید پیام دکمه را ویرایش کنید:
         query.edit_message_text(text="لطفاً IP آدرس یا نام هاست مورد نظر را برای پینگ وارد کنید:")
         context.user_data['state'] = 'awaiting_ping_target'
     elif query.data == 'server_info':
@@ -62,7 +67,7 @@ def send_server_info(update_obj, context):
     update_obj.edit_message_text(text=info_message, parse_mode='HTML')
 
 def get_uptime_string(boot_time_seconds):
-    import datetime
+    # import datetime از بالای فایل منتقل شد
     boot_time = datetime.datetime.fromtimestamp(boot_time_seconds)
     current_time = datetime.datetime.now()
     uptime_delta = current_time - boot_time
@@ -144,7 +149,8 @@ def main():
 
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CallbackQueryHandler(button))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+    # <--- تغییر در اینجا: Filters.text به filters.TEXT و Filters.command به ~filters.COMMAND
+    dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     updater.start_polling()
     updater.idle()
